@@ -35,7 +35,6 @@ void RegisterCommands()
 {
     RegAdminCmd("tp_coordinate", GetCoordinatePlayer, ADMFLAG_ROOT, "Allow to get the coordinate from a player.");
     RegAdminCmd("tp_teleport", Teleport, ADMFLAG_ROOT, "Allow to teleporte.");
-    //RegAdminCmd("tp_teleport_location", Teleport, ADMFLAG_ROOT, "Allow to teleport a player or yourself to another location by different type of teleportation.");
 }
 
 /**
