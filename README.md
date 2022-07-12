@@ -1,4 +1,4 @@
-<br><br><br>
+<br>
 <h1 align="center"> Teleportation </h1>
 
 
@@ -16,21 +16,29 @@
 
 <br>
 
-```tp_coordinate <namePlayerTargeted>;```
+```
+tp_coordinate <namePlayerTargeted>;
+```
 <br>
 
-```tp_teleport <namePlayerTargeted>```
+```
+tp_teleport <namePlayerTargeted>
+```
 <br>
 
-```tp_teleport<namePlayerToTeleport> <namePlayerTargeted>```
+```
+tp_teleport<namePlayerToTeleport> <namePlayerTargeted>
+```
 <br>
 
-```tp_teleport <namePlayerToTeleport> <TypeTeleportation>```
+```
+tp_teleport <namePlayerToTeleport> <TypeTeleportation>
+```
 
 <br>
 <br>
 
-Type of teleportation available:
+### Type of teleportation available:
 
 1. Absolute (Teleport the player to a location specific.)
 2. Relative (Teleport the player by adding a another location to his location)
