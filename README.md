@@ -1,12 +1,14 @@
+<br><br><br>
 <h1 align="center"> Teleportation </h1>
 
+
+<p align="center">
+    <i>This plugin will allow you to teleport a player or yourself to another location.</i>
+</p>
+
 <br>
 
-### What is it ?
 
-<br>
-
-This plugin will allow you to teleport a player or yourself to another location.
 
 <br><br>
 
@@ -14,18 +16,18 @@ This plugin will allow you to teleport a player or yourself to another location.
 
 <br>
 
-<code>tp_coordinate &lt;namePlayerTargeted&gt;</code>
-
-<code>tp_teleport &lt;namePlayerTargeted&gt;
-<code>tp_teleport &lt;namePlayerToTeleport&gt; &lt;namePlayerTargeted&gt;</code>
-<code>tp_teleport &lt;namePlayerToTeleport&gt; &lt;TypeTeleportation&gt;</code>
-
+```tp_coordinate <namePlayerTargeted>;```
 <br>
 
-If "namePlayerTargeted" is not defined then it's the sender of this command who is targeted.
+```tp_teleport <namePlayerTargeted>```
+<br>
 
-Use the number or the name to specify the type of teleportation in any commands above.
+```tp_teleport<namePlayerToTeleport> <namePlayerTargeted>```
+<br>
 
+```tp_teleport <namePlayerToTeleport> <TypeTeleportation>```
+
+<br>
 <br>
 
 Type of teleportation available:
