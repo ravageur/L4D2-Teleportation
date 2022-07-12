@@ -34,8 +34,8 @@ public void OnPluginEnd()
 void RegisterCommands()
 {
     RegAdminCmd("tp_coordinate", GetCoordinatePlayer, ADMFLAG_ROOT, "Allow to get the coordinate from a player.");
-    RegAdminCmd("tp_teleport", TeleportPlayerToPlayer, ADMFLAG_ROOT, "Allow to teleporte a player to another player.");
-    RegAdminCmd("tp_teleport_location", TeleportPlayerToLocation, ADMFLAG_ROOT, "Allow to teleport a player or yourself to another location by different type of teleportation.");
+    RegAdminCmd("tp_teleport", Teleport, ADMFLAG_ROOT, "Allow to teleporte.");
+    //RegAdminCmd("tp_teleport_location", Teleport, ADMFLAG_ROOT, "Allow to teleport a player or yourself to another location by different type of teleportation.");
 }
 
 /**
@@ -48,7 +48,7 @@ void RegisterCommands()
  */
 Action GetCoordinatePlayer(int client = 0, int args)
 {
-    char nameOfTargetedPlayer[255];
+    char nameOfTargetedPlayer[256];
     int indexTargetedPlayer;
     float location[3];
 
@@ -63,11 +63,11 @@ Action GetCoordinatePlayer(int client = 0, int args)
 
             if(client == 0)
             {
-                PrintToServer("[TP]: The coordinates of %s are [x: %f, y: %f, z: %f]", nameOfTargetedPlayer, location[0], location[1], location[2]);
+                PrintToServer("[TP]: The coordinates of %s are [x: %f, y: %f, z: %f].", nameOfTargetedPlayer, location[0], location[2], location[1]);
             }
             else
             {
-                PrintToChat(client, "[TP]: The coordinates of %s are [x: %f, y: %f, z: %f]", nameOfTargetedPlayer, location[0], location[1], location[2]);
+                PrintToChat(client, "[TP]: The coordinates of %s are [x: %f, y: %f, z: %f].", nameOfTargetedPlayer, location[0], location[2], location[1]);
             }
         }
         else
@@ -83,134 +83,148 @@ Action GetCoordinatePlayer(int client = 0, int args)
     }
     else
     {
-        ReplyToCommand(client, "[TP]: tp_coordinate <nameOfPlayer>");
+        ReplyToCommand(client, "[TP]: tp_coordinate <nameOfPlayer>.");
     }
 
     return Plugin_Handled;
 }
 
-/**
- * Allow to teleporte a player to another player.
- *
- * The first argument is the <name|userid> of the player to teleport.
- * The second argument is the <name|userid> of the player where the the other player will be teleported. (If this is not defined, then it is the player who
- * use this command who will be targetted).
- * 
- * @param client
- * @param args
- *
- * @return Action
- */
-Action TeleportPlayerToPlayer(int client = 0, int args)
+
+
+Action Teleport(int client = 0, int args)
 {
-    char nameOfPlayer_1[255];
-    char nameOfPlayer_2[255];
+    if(args == 5)
+    {
+        TeleportPlayerToLocation(client);
+    }
+    else if(args != 0)
+    {
+        TeleportPlayerToPlayer(client, args);
+    }
+    else
+    {
+        ReplyToCommand(client, "[TP]: ut_teleport <namePlayer1> <namePlayer2(If not specified then it's you)>    OR    ut_teleport <nameOfPlayerToTeleport> <[0: absolute, 1: relative]> <x> <y> <z>.");
+    }
 
-    int indexPlayer_1;
-    int indexPlayer_2;
+    return Plugin_Handled;
+}
 
-    float vecP2[3];
+
+
+void TeleportPlayerToPlayer(int client, int args)
+{
+    char nameOfPlayer_1[256];
+
+    int indexPlayer;
+
+    float locationPlayer[3];
 
     if(args == 2)
     {
+        char nameOfPlayer_2[256];
+    
+        int indexPlayer_2;
+
         GetCmdArg(1, nameOfPlayer_1, sizeof(nameOfPlayer_1));
         GetCmdArg(2, nameOfPlayer_2, sizeof(nameOfPlayer_2));
 
-        indexPlayer_1 = FindTarget(client, nameOfPlayer_1);
+        indexPlayer = FindTarget(client, nameOfPlayer_1);
         indexPlayer_2 = FindTarget(client, nameOfPlayer_2);
 
-        if(indexPlayer_1 != -1 && indexPlayer_2 != -1)
+        if(indexPlayer != -1 && indexPlayer_2 != -1)
         {
-            GetClientAbsOrigin(indexPlayer_2, vecP2);
-            TeleportEntity(indexPlayer_1, vecP2);
+            if(indexPlayer_2 != -1)
+            {
+                GetClientAbsOrigin(indexPlayer_2, locationPlayer);
+                TeleportEntity(indexPlayer, locationPlayer);
+
+                ReplyToCommand(client, "[TP]: %s has been teleported to %s.", nameOfPlayer_2);
+            }
+            else
+            {
+                ReplyToCommand(client, "[TP]: %s not found.", nameOfPlayer_2);
+            }
+
+        }
+        else
+        {
+            ReplyToCommand(client, "[TP]: %s not found.", nameOfPlayer_1);
         }
     }
     else if(client != 0 && args == 1)
     {
         GetCmdArg(1, nameOfPlayer_1, sizeof(nameOfPlayer_1));
-        indexPlayer_1 = FindTarget(client, nameOfPlayer_1);
+        indexPlayer = FindTarget(client, nameOfPlayer_1);
 
-        if(indexPlayer_1 != -1)
+        if(indexPlayer != -1)
         {
-            GetClientAbsOrigin(client, vecP2);
-            TeleportEntity(indexPlayer_1, vecP2);
-        }
-    }
-    else
-    {
-        ReplyToCommand(client, "[TP]: ut_teleport <namePlayer1> <namePlayer2(If not specified then it's you)>");
-    }
+            GetClientAbsOrigin(client, locationPlayer);
+            TeleportEntity(indexPlayer, locationPlayer);
 
-    return Plugin_Handled;
-}
-
-/**
- * Allow to teleport a player or yourself to another location by different type of teleportation. (Absolute or relative)
- * 
- * @param client
- * @param args
- *
- * @return Action
- */
-Action TeleportPlayerToLocation(int client = 0, int args)
-{
-    char nameOfTargetedPlayer[255];
-    int indexTargetedPlayer;
-    char typeTeleportation[255];
-    char locationArgumentToConvert[3][255];
-    float locationTargetedPlayer[3];
-    float locationToAdd[3];
-
-    if(args == 5)
-    {
-        GetCmdArg(1, nameOfTargetedPlayer, sizeof(nameOfTargetedPlayer));
-        GetCmdArg(2, typeTeleportation, sizeof(typeTeleportation));
-        GetCmdArg(3, locationArgumentToConvert[0], sizeof(locationArgumentToConvert[]));
-        GetCmdArg(4, locationArgumentToConvert[1], sizeof(locationArgumentToConvert[]));
-        GetCmdArg(5, locationArgumentToConvert[2], sizeof(locationArgumentToConvert[]));
-
-        locationToAdd[0] = StringToFloat(locationArgumentToConvert[0]);
-        locationToAdd[1] = StringToFloat(locationArgumentToConvert[1]);
-        locationToAdd[2] = StringToFloat(locationArgumentToConvert[2]);
-
-        indexTargetedPlayer = FindTarget(client, nameOfTargetedPlayer);
-
-        if(indexTargetedPlayer != -1)
-        {
-            if(StrEqual(typeTeleportation, "0") || StrEqual(typeTeleportation, "absolute", false) || StrEqual(typeTeleportation, "a", false))
-            {
-                GetClientAbsOrigin(indexTargetedPlayer, locationTargetedPlayer);
-
-                locationTargetedPlayer[0] = locationToAdd[0];
-                locationTargetedPlayer[1] = locationToAdd[1];
-                locationTargetedPlayer[2] = locationToAdd[2];
-
-                TeleportEntity(indexTargetedPlayer, locationTargetedPlayer);
-            }
-            else if(StrEqual(typeTeleportation, "1") || StrEqual(typeTeleportation, "relative", false) || StrEqual(typeTeleportation, "r", false))
-            {
-                GetClientAbsOrigin(indexTargetedPlayer, locationTargetedPlayer);
-
-                locationTargetedPlayer[0] = locationTargetedPlayer[0] + locationToAdd[0];
-                locationTargetedPlayer[1] = locationTargetedPlayer[1] + locationToAdd[1];
-                locationTargetedPlayer[2] = locationTargetedPlayer[2] + locationToAdd[2];
-
-                TeleportEntity(indexTargetedPlayer, locationTargetedPlayer);
-            }
-            else
-            {
-                ReplyToCommand(client, "[TP]: Type of teleportation %s does not exist.", typeTeleportation);
-            }
+            ReplyToCommand(client, "[TP]: You have been teleported to %s.", nameOfPlayer_1);
         }
         else
         {
-            ReplyToCommand(client, "[TP]: Player %s not found.", nameOfTargetedPlayer);
+            ReplyToCommand(client, "[TP]: %s not found.", nameOfPlayer_1);
         }
     }
     else
     {
-        ReplyToCommand(client, "[TP]: ut_teleportLocation <nameOfPlayerToTeleport> <[0: absolute, 1: relative]> <x> <y> <z>");
+        ReplyToCommand(client, "[TP]: ut_teleport <namePlayer1> <namePlayer2(If not specified then it's you)>.");
     }
+}
 
-    return Plugin_Handled;
+
+void TeleportPlayerToLocation(int client)
+{
+    char namePlayer[256];
+    char arguments[4][16];
+
+    int indexPlayer;
+
+    float locationPlayer[3];
+
+    GetCmdArg(1, namePlayer, sizeof(namePlayer));
+    GetCmdArg(2, arguments[0], 16);
+    GetCmdArg(3, arguments[1], 16);
+    GetCmdArg(4, arguments[2], 16);
+    GetCmdArg(5, arguments[3], 16);
+
+    indexPlayer = FindTarget(client, namePlayer);
+
+    if(indexPlayer != -1)
+    {
+        if(StrEqual(arguments[0], "0") || StrEqual(arguments[0], "absolute", false) || StrEqual(arguments[0], "a", false))
+        {
+            GetClientAbsOrigin(indexPlayer, locationPlayer);
+
+            locationPlayer[0] = StringToFloat(arguments[1]);
+            locationPlayer[1] = StringToFloat(arguments[3]);
+            locationPlayer[2] = StringToFloat(arguments[2]);
+
+            TeleportEntity(indexPlayer, locationPlayer);
+
+            ReplyToCommand(client, "[TP]: %s has been teleported directly to [X: %s, Y: %s, Z: %s].", namePlayer, arguments[1], arguments[2], arguments[3]);
+        }
+        else if(StrEqual(arguments[0], "1") || StrEqual(arguments[0], "relative", false) || StrEqual(arguments[0], "r", false))
+        {
+            GetClientAbsOrigin(indexPlayer, locationPlayer);
+
+            locationPlayer[0] = locationPlayer[0] + StringToFloat(arguments[1]);
+            locationPlayer[1] = locationPlayer[1] + StringToFloat(arguments[3]);
+            locationPlayer[2] = locationPlayer[2] + StringToFloat(arguments[2]);
+
+            TeleportEntity(indexPlayer, locationPlayer);
+
+            ReplyToCommand(client, "[TP]: %s has been teleported from his position to [X: %s, Y: %s, Z: %s].", namePlayer, arguments[1], arguments[2], arguments[3]);
+        }
+        else
+        {
+            ReplyToCommand(client, "[TP]: Type of teleportation %s does not exist.", arguments[0]);
+        }
+    }
+    else
+    {
+        ReplyToCommand(client, "[TP]: %s not found.", namePlayer);
+    }
 }
